@@ -86,29 +86,6 @@ function App() {
             </table>
           ) : <div>Nenhuma exception encontrada.</div>}
 
-          {/* Sessão Erros Genéricos Detalhada */}
-          <h3>Erros Genéricos</h3>
-          {result.errors && result.errors.length > 0 ? (
-            <table border="1" cellPadding={6} style={{ borderCollapse: "collapse", marginBottom: 20 }}>
-              <thead>
-                <tr>
-                  <th>Descrição Curta</th>
-                  <th>Linha</th>
-                  <th>Timestamp</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.errors.map((err, i) => (
-                  <tr key={i}>
-                    <td>{err.short_desc}</td>
-                    <td>{err.line}</td>
-                    <td>{err.timestamp}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : <div>Nenhum erro genérico encontrado.</div>}
-
           {/* Sessão WARN Detalhada */}
           <h3>Warns</h3>
           {result.warns && result.warns.length > 0 ? (
@@ -158,29 +135,6 @@ function App() {
               </tbody>
             </table>
           ) : <div>Nenhuma exception encontrada.</div>}
-
-          {/* Sessão Erros Genéricos Agrupada */}
-          <h3>Erros Genéricos (Agrupados)</h3>
-          {result.errors_grouped && result.errors_grouped.length > 0 ? (
-            <table border="1" cellPadding={6} style={{ borderCollapse: "collapse", marginBottom: 20 }}>
-              <thead>
-                <tr>
-                  <th>Descrição Curta</th>
-                  <th>Linhas</th>
-                  <th>Qtd</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.errors_grouped.map((err, i) => (
-                  <tr key={i}>
-                    <td>{err.short_desc}</td>
-                    <td>{err.lines && err.lines.join(", ")}</td>
-                    <td>{err.count}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : <div>Nenhum erro genérico encontrado.</div>}
 
           {/* Sessão WARN Agrupada */}
           <h3>Warns (Agrupados)</h3>
