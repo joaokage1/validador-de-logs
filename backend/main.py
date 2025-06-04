@@ -40,6 +40,11 @@ EXCEPTION_TYPE_REGEX = re.compile(r"(\w+(?:\.\w+)+Exception|\w+(?:\.\w+)+Error)"
 
 @app.post("/upload/")
 async def upload_log(file: UploadFile = File(...)):
+    # Permitir .out, .txt, .log
+    allowed_exts = [".txt", ".log", ".out"]
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed_exts:
+        return JSONResponse(status_code=400, content={"error": "Extensão de arquivo não suportada."})
     file_location = os.path.join(DATA_DIR, file.filename)
     with open(file_location, "wb") as f:
         f.write(await file.read())
@@ -60,7 +65,6 @@ def analyze_log(filename: str):
         line = line.rstrip("\n")
         match = LOG_LINE_REGEX.match(line)
         if match:
-            # Extrai campos conforme padrão identificado
             if match.group("wls_date"):
                 timestamp = match.group("wls_date")
                 level = match.group("wls_level").upper()
@@ -81,13 +85,13 @@ def analyze_log(filename: str):
                 timestamp = "-"
                 level = "-"
                 msg = line.strip()
-            # Identifica tipo de ocorrência
+            # Considera qualquer linha com ERROR/ERRO/SEVERE como erro ou exception
             if level in ["ERROR", "ERRO", "SEVERE"] or "ERROR" in level or "SEVERE" in level:
                 exc_match = EXCEPTION_TYPE_REGEX.search(msg)
-                exc_type = exc_match.group(1) if exc_match else ("Exception" if "exception" in msg.lower() else "Erro Genérico")
-                current = {
+                exc_type = exc_match.group(1) if exc_match else None
+                entry = {
                     "timestamp": timestamp,
-                    "type": exc_type,
+                    "type": exc_type if exc_type else "Erro/Exception",
                     "short_desc": msg.split(":", 1)[-1].strip() if ":" in msg else msg.strip(),
                     "onde": "-",
                     "lines": [idx+1],
@@ -95,7 +99,11 @@ def analyze_log(filename: str):
                     "message": msg,
                     "stacktrace": []
                 }
-                exceptions.append(current)
+                if exc_type:
+                    exceptions.append(entry)
+                else:
+                    errors.append(entry)
+                current = entry
             elif level in ["WARNING", "WARN"] or "WARN" in level:
                 current = {
                     "timestamp": timestamp,
@@ -111,7 +119,6 @@ def analyze_log(filename: str):
             else:
                 current = None
         elif STACKTRACE_REGEX.match(line):
-            # Linha de stacktrace
             if current:
                 current["stacktrace"].append(line.strip())
                 if current["onde"] == "-":
@@ -142,9 +149,10 @@ def analyze_log(filename: str):
 
     return {
         "exceptions": exceptions,
-        "errors": [],  # Erros genéricos agora entram como exceptions se não houver tipo
+        "errors": errors,
         "warns": warns,
         "exceptions_grouped": group_items(exceptions, "type", ["short_desc", "onde"]) if exceptions else [],
+        "errors_grouped": group_items(errors, "short_desc") if errors else [],
         "warns_grouped": group_items(warns, "short_desc") if warns else []
     }
 

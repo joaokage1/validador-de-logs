@@ -50,7 +50,7 @@ function App() {
   return (
     <div style={{ maxWidth: 900, margin: "40px auto", fontFamily: "sans-serif" }}>
       <h1>Validador de Logs</h1>
-      <input type="file" accept=".txt" onChange={handleFileChange} />
+      <input type="file" accept=".txt,.out,.log" onChange={handleFileChange} />
       <button onClick={handleUpload} disabled={loading || !file} style={{ marginLeft: 8 }}>
         {loading ? "Enviando..." : "Enviar e Analisar"}
       </button>
@@ -62,14 +62,17 @@ function App() {
           {/* Sessão Exceptions Detalhada */}
           <h3>Exceptions</h3>
           {result.exceptions && result.exceptions.length > 0 ? (
-            <table border="1" cellPadding={6} style={{ borderCollapse: "collapse", marginBottom: 20 }}>
+            <div>
+            <table border="1" cellPadding={6} style={{ borderCollapse: "collapse", marginBottom: 20, width: '100%', tableLayout: 'auto' }}>
               <thead>
                 <tr>
-                  <th>Tipo</th>
-                  <th>Descrição Curta</th>
-                  <th>Onde Ocorre</th>
-                  <th>Linha</th>
-                  <th>Timestamp</th>
+                  <th style={{minWidth:120}}>Tipo</th>
+                  <th style={{minWidth:160}}>Descrição Curta</th>
+                  <th style={{minWidth:100}}>Onde Ocorre</th>
+                  <th style={{minWidth:60}}>Linha</th>
+                  <th style={{minWidth:110}}>Timestamp</th>
+                  <th style={{minWidth:220}}>Mensagem Completa</th>
+                  <th style={{minWidth:220}}>Stacktrace</th>
                 </tr>
               </thead>
               <tbody>
@@ -78,13 +81,47 @@ function App() {
                     <td>{ex.type}</td>
                     <td>{ex.short_desc}</td>
                     <td>{ex.onde}</td>
-                    <td>{ex.line}</td>
+                    <td>{ex.lines ? ex.lines[0] : ex.line}</td>
                     <td>{ex.timestamp}</td>
+                    <td><pre style={{whiteSpace:'pre-wrap',wordBreak:'break-word',margin:0}}>{ex.message}</pre></td>
+                    <td><pre style={{whiteSpace:'pre-wrap',wordBreak:'break-word',margin:0}}>{ex.stacktrace && ex.stacktrace.length > 0 ? ex.stacktrace.join('\n') : '-'}</pre></td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           ) : <div>Nenhuma exception encontrada.</div>}
+
+          {/* Sessão Erros Detalhada */}
+          <h3>Erros</h3>
+          {result.errors && result.errors.length > 0 ? (
+            <table border="1" cellPadding={6} style={{ borderCollapse: "collapse", marginBottom: 20, width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Descrição Curta</th>
+                  <th>Onde Ocorre</th>
+                  <th>Linha</th>
+                  <th>Timestamp</th>
+                  <th>Mensagem Completa</th>
+                  <th>Stacktrace</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.errors.map((err, i) => (
+                  <tr key={i}>
+                    <td>{err.type}</td>
+                    <td>{err.short_desc}</td>
+                    <td>{err.onde}</td>
+                    <td>{err.lines ? err.lines[0] : err.line}</td>
+                    <td>{err.timestamp}</td>
+                    <td><pre style={{whiteSpace:'pre-wrap',maxWidth:400}}>{err.message}</pre></td>
+                    <td><pre style={{whiteSpace:'pre-wrap',maxWidth:400}}>{err.stacktrace && err.stacktrace.length > 0 ? err.stacktrace.join('\n') : '-'}</pre></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : <div>Nenhum erro encontrado.</div>}
 
           {/* Sessão WARN Detalhada */}
           <h3>Warns</h3>
