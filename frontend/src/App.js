@@ -69,6 +69,102 @@ function ResultTable({ title, rows = [], grouped = false, emptyLabel }) {
   );
 }
 
+function ProgressBar({ label, value, total, color = "#1d4ed8" }) {
+  const safeTotal = total > 0 ? total : 1;
+  const percentage = Math.round((value / safeTotal) * 100);
+
+  return (
+    <div className="progress-row">
+      <div className="progress-label">
+        <span>{label}</span>
+        <strong>
+          {value} ({percentage}%)
+        </strong>
+      </div>
+      <div className="progress-track">
+        <div className="progress-fill" style={{ width: `${percentage}%`, background: color }} />
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsPanel({ result }) {
+  const totals = {
+    exceptions: result?.summary?.total_exceptions || 0,
+    errors: result?.summary?.total_errors || 0,
+    warns: result?.summary?.total_warns || 0,
+  };
+
+  const totalIssues = totals.exceptions + totals.errors + totals.warns;
+  const severityEntries = [
+    { label: "Exceptions", value: totals.exceptions, color: "#dc2626" },
+    { label: "Erros", value: totals.errors, color: "#f97316" },
+    { label: "Avisos", value: totals.warns, color: "#facc15" },
+  ];
+
+  const groupedAll = [
+    ...(result?.exceptions_grouped || []),
+    ...(result?.errors_grouped || []),
+    ...(result?.warns_grouped || []),
+  ];
+
+  const sortedTopIssues = groupedAll
+    .slice()
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  const topIssue = sortedTopIssues[0] || { short_desc: "-", type: "-", count: 0, source: "liferay" };
+
+  return (
+    <section className="result-card">
+      <h3>Visão analítica</h3>
+      <p className="empty-state">Distribuição percentual e ranking das ocorrências mais frequentes no log.</p>
+
+      <div className="analytics-grid single-column">
+        <article className="analytics-block">
+          <h4>Distribuição por severidade</h4>
+          {severityEntries.map((item) => (
+            <ProgressBar
+              key={item.label}
+              label={item.label}
+              value={item.value}
+              total={totalIssues}
+              color={item.color}
+            />
+          ))}
+        </article>
+      </div>
+
+      <div className="analytics-grid compact">
+        <StatCard label="Total de ocorrências" value={totalIssues} />
+        <StatCard label="Origem" value="LIFERAY" />
+        <StatCard label="Mais vista (qtd)" value={topIssue.count} tone="danger" />
+      </div>
+
+      <article className="analytics-highlight">
+        <h4>Top 5 ocorrências mais frequentes</h4>
+        {sortedTopIssues.length === 0 ? (
+          <p className="empty-state">Nenhuma ocorrência encontrada.</p>
+        ) : (
+          <ol className="top-issues-list">
+            {sortedTopIssues.map((issue, index) => (
+              <li key={`${issue.type}-${issue.short_desc}-${index}`}>
+                <span className="issue-rank">#{index + 1}</span>
+                <div>
+                  <p>
+                    <strong>{issue.type || "-"}</strong> — {issue.short_desc || "-"}
+                  </p>
+                  <p className="empty-state">Fonte: LIFERAY | Qtd: {issue.count || 0}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </article>
+    </section>
+  );
+}
+
 function App() {
   const [file, setFile] = useState(null);
   const [filename, setFilename] = useState("");
@@ -167,17 +263,24 @@ function App() {
             <button className={tab === "grouped" ? "active" : ""} onClick={() => setTab("grouped")}>
               Visão agrupada
             </button>
+            <button className={tab === "analytics" ? "active" : ""} onClick={() => setTab("analytics")}>
+              Visão analítica
+            </button>
           </div>
 
-          {(tab === "detailed" ? detailedEntries : groupedEntries).map((entry) => (
-            <ResultTable
-              key={entry.key}
-              title={entry.title}
-              rows={entry.rows}
-              grouped={tab === "grouped"}
-              emptyLabel={entry.empty}
-            />
-          ))}
+          {tab === "analytics" ? (
+            <AnalyticsPanel result={result} />
+          ) : (
+            (tab === "detailed" ? detailedEntries : groupedEntries).map((entry) => (
+              <ResultTable
+                key={entry.key}
+                title={entry.title}
+                rows={entry.rows}
+                grouped={tab === "grouped"}
+                emptyLabel={entry.empty}
+              />
+            ))
+          )}
         </>
       )}
     </main>
