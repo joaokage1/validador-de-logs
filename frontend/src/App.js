@@ -166,15 +166,16 @@ function AnalyticsPanel({ result }) {
 }
 
 function App() {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [filename, setFilename] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tab, setTab] = useState("detailed");
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    setFiles(Array.from(e.target.files || []));
     setResult(null);
     setError("");
   };
@@ -191,17 +192,20 @@ function App() {
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!files.length) return;
     setLoading(true);
     setError("");
     const formData = new FormData();
-    formData.append("file", file);
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
 
     try {
       const res = await axios.post(`${API_BASE}/upload/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setFilename(res.data.filename);
+      setUploadedFiles(res.data.uploaded_files || []);
       await fetchAnalysis(res.data.filename);
     } catch (err) {
       setError("Erro ao fazer upload.");
@@ -233,14 +237,18 @@ function App() {
         </p>
 
         <div className="upload-row">
-          <input type="file" accept=".txt,.out,.log" onChange={handleFileChange} />
-          <button onClick={handleUpload} disabled={loading || !file}>
+          <input type="file" accept=".txt,.out,.log" multiple onChange={handleFileChange} />
+          <button onClick={handleUpload} disabled={loading || !files.length}>
             {loading ? "Analisando..." : "Enviar e analisar"}
           </button>
           <button className="secondary" onClick={handleExport} disabled={!filename}>
             Exportar CSV
           </button>
         </div>
+
+        {uploadedFiles.length > 0 && (
+          <p className="empty-state">Arquivos enviados: {uploadedFiles.join(", ")}</p>
+        )}
 
         {error && <div className="error-box">{error}</div>}
       </section>

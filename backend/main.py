@@ -226,15 +226,38 @@ def analyze_lines(lines: List[str]) -> Dict:
 
 
 @app.post("/upload/")
-async def upload_log(file: UploadFile = File(...)):
+async def upload_log(files: Optional[List[UploadFile]] = File(None), file: Optional[UploadFile] = File(None)):
     allowed_exts = [".txt", ".log", ".out"]
-    ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in allowed_exts:
-        return JSONResponse(status_code=400, content={"error": "Extensão de arquivo não suportada."})
-    file_location = os.path.join(DATA_DIR, file.filename)
-    with open(file_location, "wb") as f:
-        f.write(await file.read())
-    return {"filename": file.filename}
+    selected_files = files or ([file] if file else [])
+
+    if not selected_files:
+        return JSONResponse(status_code=400, content={"error": "Nenhum arquivo enviado."})
+
+    sanitized_names: List[str] = []
+    combined_lines: List[str] = []
+
+    for uploaded_file in selected_files:
+        original_name = os.path.basename(uploaded_file.filename or "")
+        ext = os.path.splitext(original_name)[1].lower()
+        if ext not in allowed_exts:
+            return JSONResponse(status_code=400, content={"error": f"Extensão de arquivo não suportada: {original_name}"})
+
+        sanitized_names.append(original_name)
+        content = (await uploaded_file.read()).decode("utf-8", errors="ignore")
+        combined_lines.append(f"\n# ===== Arquivo: {original_name} =====\n")
+        combined_lines.append(content)
+
+    if len(sanitized_names) == 1:
+        filename = sanitized_names[0]
+    else:
+        base_name = "_".join(os.path.splitext(name)[0] for name in sanitized_names[:2])
+        filename = f"{base_name}_mais_{len(sanitized_names) - 2}_arquivos.log" if len(sanitized_names) > 2 else f"{base_name}.log"
+
+    file_location = os.path.join(DATA_DIR, filename)
+    with open(file_location, "w", encoding="utf-8") as f:
+        f.write("\n".join(combined_lines))
+
+    return {"filename": filename, "uploaded_files": sanitized_names}
 
 
 @app.get("/analyze/{filename}")
