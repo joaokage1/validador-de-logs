@@ -102,31 +102,25 @@ function AnalyticsPanel({ result }) {
     { label: "Avisos", value: totals.warns, color: "#facc15" },
   ];
 
-  const sourceEntries = Object.entries(result?.summary?.by_source || {}).map(([source, value]) => ({
-    source,
-    value,
-  }));
-  const topSource = sourceEntries.reduce((prev, curr) => (curr.value > prev.value ? curr : prev), {
-    source: "-",
-    value: 0,
-  });
-
   const groupedAll = [
     ...(result?.exceptions_grouped || []),
     ...(result?.errors_grouped || []),
     ...(result?.warns_grouped || []),
   ];
-  const topIssue = groupedAll.reduce(
-    (prev, curr) => (curr.count > prev.count ? curr : prev),
-    { short_desc: "-", type: "-", count: 0, source: "-" }
-  );
+
+  const sortedTopIssues = groupedAll
+    .slice()
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  const topIssue = sortedTopIssues[0] || { short_desc: "-", type: "-", count: 0, source: "liferay" };
 
   return (
     <section className="result-card">
       <h3>Visão analítica</h3>
-      <p className="empty-state">Distribuição percentual, tendências por origem e item mais recorrente no log.</p>
+      <p className="empty-state">Distribuição percentual e ranking das ocorrências mais frequentes no log.</p>
 
-      <div className="analytics-grid">
+      <div className="analytics-grid single-column">
         <article className="analytics-block">
           <h4>Distribuição por severidade</h4>
           {severityEntries.map((item) => (
@@ -139,38 +133,33 @@ function AnalyticsPanel({ result }) {
             />
           ))}
         </article>
-
-        <article className="analytics-block">
-          <h4>Participação por origem</h4>
-          {sourceEntries.map((item) => (
-            <ProgressBar
-              key={item.source}
-              label={item.source.toUpperCase()}
-              value={item.value}
-              total={totalIssues}
-              color="#2563eb"
-            />
-          ))}
-        </article>
       </div>
 
       <div className="analytics-grid compact">
         <StatCard label="Total de ocorrências" value={totalIssues} />
-        <StatCard label="Fonte predominante" value={`${topSource.source.toUpperCase()} (${topSource.value})`} />
-        <StatCard label="Erro mais visto" value={topIssue.count} tone="danger" />
+        <StatCard label="Origem" value="LIFERAY" />
+        <StatCard label="Mais vista (qtd)" value={topIssue.count} tone="danger" />
       </div>
 
       <article className="analytics-highlight">
-        <h4>Ocorrência mais frequente</h4>
-        <p>
-          <strong>Tipo:</strong> {topIssue.type || "-"}
-        </p>
-        <p>
-          <strong>Descrição:</strong> {topIssue.short_desc || "-"}
-        </p>
-        <p>
-          <strong>Fonte:</strong> {(topIssue.source || "-").toUpperCase()} | <strong>Qtd:</strong> {topIssue.count || 0}
-        </p>
+        <h4>Top 5 ocorrências mais frequentes</h4>
+        {sortedTopIssues.length === 0 ? (
+          <p className="empty-state">Nenhuma ocorrência encontrada.</p>
+        ) : (
+          <ol className="top-issues-list">
+            {sortedTopIssues.map((issue, index) => (
+              <li key={`${issue.type}-${issue.short_desc}-${index}`}>
+                <span className="issue-rank">#{index + 1}</span>
+                <div>
+                  <p>
+                    <strong>{issue.type || "-"}</strong> — {issue.short_desc || "-"}
+                  </p>
+                  <p className="empty-state">Fonte: LIFERAY | Qtd: {issue.count || 0}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
       </article>
     </section>
   );

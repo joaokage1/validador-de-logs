@@ -160,6 +160,10 @@ th {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.analytics-grid.single-column {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .analytics-block {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -207,4 +211,33 @@ th {
 
 .analytics-highlight p {
   margin: 0.3rem 0;
+}
+
+
+.top-issues-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.top-issues-list li {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  background: #f9fafb;
+}
+
+.issue-rank {
+  min-width: 2rem;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.top-issues-list p {
+  margin: 0.15rem 0;
 }
