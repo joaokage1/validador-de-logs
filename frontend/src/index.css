@@ -90,6 +90,7 @@ button:disabled {
 
 .stat-card strong {
   font-size: 1.4rem;
+  overflow-wrap: anywhere;
 }
 
 .stat-card.danger {
@@ -146,4 +147,64 @@ th {
 
 .empty-state {
   color: #6b7280;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.analytics-grid.compact {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.analytics-block {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.9rem;
+  background: #f8fafc;
+}
+
+.analytics-block h4,
+.analytics-highlight h4 {
+  margin: 0 0 0.8rem;
+}
+
+.progress-row {
+  margin-bottom: 0.85rem;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.92rem;
+}
+
+.progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.analytics-highlight {
+  margin-top: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.analytics-highlight p {
+  margin: 0.3rem 0;
 }
