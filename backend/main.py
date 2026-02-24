@@ -43,6 +43,9 @@ JAVA_SIMPLE_LOG_REGEX = re.compile(
 STACKTRACE_REGEX = re.compile(r"^\s*at\s+")
 STACKTRACE_CONTINUATION_REGEX = re.compile(r"^\s*(Caused by:|Suppressed:|\.\.\. \d+ more)")
 EXCEPTION_TYPE_REGEX = re.compile(r"([a-zA-Z_$][\w.$]*(?:Exception|Error))")
+EXCEPTION_LINE_REGEX = re.compile(
+    r"^\s*(?:Caused by:\s*)?(?P<exception>[a-zA-Z_$][\w.$]*(?:Exception|Error))(?::\s*(?P<detail>.*))?$"
+)
 
 ERROR_LEVELS = {"ERROR", "SEVERE", "FATAL", "CRITICAL", "ERRO"}
 WARN_LEVELS = {"WARN", "WARNING"}
@@ -160,7 +163,9 @@ def analyze_lines(lines: List[str]) -> Dict:
                 current = None
             continue
 
-        if current and (STACKTRACE_REGEX.match(line) or STACKTRACE_CONTINUATION_REGEX.match(line)):
+        exception_line = EXCEPTION_LINE_REGEX.match(line)
+
+        if current and (STACKTRACE_REGEX.match(line) or STACKTRACE_CONTINUATION_REGEX.match(line) or exception_line):
             clean_line = line.strip()
             current["stacktrace"].append(clean_line)
             current["message"] += "\n" + clean_line
@@ -174,6 +179,28 @@ def analyze_lines(lines: List[str]) -> Dict:
                     if current in errors:
                         errors.remove(current)
                         exceptions.append(current)
+            continue
+
+        if exception_line:
+            exception_type = exception_line.group("exception")
+            detail = exception_line.group("detail")
+            message = f"{exception_type}: {detail}" if detail else exception_type
+            standalone_entry = {
+                "timestamp": "-",
+                "source": "unknown",
+                "level": "ERROR",
+                "msgid": "-",
+                "subsystem": "-",
+                "type": exception_type,
+                "short_desc": detail.strip() if detail else exception_type,
+                "onde": line.strip(),
+                "lines": [idx + 1],
+                "count": 1,
+                "message": message,
+                "stacktrace": [line.strip()],
+            }
+            exceptions.append(standalone_entry)
+            current = standalone_entry
             continue
 
         current = None

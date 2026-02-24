@@ -241,3 +241,37 @@ th {
 .top-issues-list p {
   margin: 0.15rem 0;
 }
+
+.details-cell {
+  min-width: 240px;
+}
+
+.details-cell details {
+  cursor: pointer;
+}
+
+.details-cell summary {
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.details-content {
+  margin-top: 0.5rem;
+  max-width: 420px;
+}
+
+.details-content p {
+  margin: 0.35rem 0;
+}
+
+.detail-pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.55rem;
+  margin: 0.3rem 0;
+  max-height: 160px;
+  overflow: auto;
+}
