@@ -58,8 +58,6 @@ function ResultTable({ title, rows = [], grouped = false, emptyLabel }) {
                 <th>Descrição</th>
                 <th>Fonte</th>
                 <th>Subsystem</th>
-                <th>MsgID</th>
-                <th>Onde</th>
                 <th>Linhas</th>
                 <th>Qtd</th>
                 <th>Timestamp</th>
@@ -73,8 +71,6 @@ function ResultTable({ title, rows = [], grouped = false, emptyLabel }) {
                   <td>{item.short_desc || "-"}</td>
                   <td>{item.source || "-"}</td>
                   <td>{item.subsystem || "-"}</td>
-                  <td>{item.msgid || "-"}</td>
-                  <td className="pre-cell">{item.onde || "-"}</td>
                   <td>{(item.lines || []).join(", ") || "-"}</td>
                   <td>{grouped ? item.count : 1}</td>
                   <td>{item.timestamp || "-"}</td>
