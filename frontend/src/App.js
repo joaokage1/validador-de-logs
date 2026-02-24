@@ -25,6 +25,24 @@ function StatCard({ label, value, tone = "neutral" }) {
   );
 }
 
+function renderStacktrace(item, grouped) {
+  const traces = grouped
+    ? item.stacktraces || []
+    : item.stacktrace && item.stacktrace.length
+    ? [item.stacktrace.join("\n")]
+    : [];
+
+  if (!traces.length || traces.every((trace) => trace === "-" || !trace.trim())) {
+    return <p className="empty-state">Sem stacktrace.</p>;
+  }
+
+  return traces.slice(0, 3).map((trace, index) => (
+    <pre key={`trace-${index}`} className="detail-pre">
+      {trace}
+    </pre>
+  ));
+}
+
 function ResultTable({ title, rows = [], grouped = false, emptyLabel }) {
   return (
     <section className="result-card">
@@ -45,6 +63,7 @@ function ResultTable({ title, rows = [], grouped = false, emptyLabel }) {
                 <th>Linhas</th>
                 <th>Qtd</th>
                 <th>Timestamp</th>
+                <th>Detalhes</th>
               </tr>
             </thead>
             <tbody>
@@ -59,6 +78,26 @@ function ResultTable({ title, rows = [], grouped = false, emptyLabel }) {
                   <td>{(item.lines || []).join(", ") || "-"}</td>
                   <td>{grouped ? item.count : 1}</td>
                   <td>{item.timestamp || "-"}</td>
+                  <td className="details-cell">
+                    <details>
+                      <summary>Ver</summary>
+                      <div className="details-content">
+                        <p>
+                          <strong>Mensagem:</strong> {item.message || item.short_desc || "-"}
+                        </p>
+                        <p>
+                          <strong>Ocorrências:</strong> {grouped ? item.count || 0 : 1}
+                        </p>
+                        <p>
+                          <strong>Linhas:</strong> {(item.lines || []).join(", ") || "-"}
+                        </p>
+                        <p>
+                          <strong>Stacktrace(s):</strong>
+                        </p>
+                        {renderStacktrace(item, grouped)}
+                      </div>
+                    </details>
+                  </td>
                 </tr>
               ))}
             </tbody>
