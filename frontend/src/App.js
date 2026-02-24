@@ -127,6 +127,23 @@ function ProgressBar({ label, value, total, color = "#1d4ed8" }) {
   );
 }
 
+function getVisualizationDescription(issue) {
+  const traces = issue?.stacktraces || [];
+  const firstTrace = traces.find((trace) => trace && trace !== "-" && trace.trim());
+
+  if (!firstTrace) {
+    return issue?.short_desc || "Sem detalhes adicionais.";
+  }
+
+  const summaryLines = firstTrace
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 5);
+
+  return summaryLines.join("\n");
+}
+
 function AnalyticsPanel({ result }) {
   const totals = {
     exceptions: result?.summary?.total_exceptions || 0,
@@ -193,7 +210,8 @@ function AnalyticsPanel({ result }) {
                   <p>
                     <strong>{issue.type || "-"}</strong> — {issue.short_desc || "-"}
                   </p>
-                  <p className="empty-state">Fonte: LIFERAY | Qtd: {issue.count || 0}</p>
+                  <p className="empty-state">Fonte: {(issue.source || "-").toUpperCase()} | Qtd: {issue.count || 0}</p>
+                  <pre className="detail-pre">{getVisualizationDescription(issue)}</pre>
                 </div>
               </li>
             ))}
